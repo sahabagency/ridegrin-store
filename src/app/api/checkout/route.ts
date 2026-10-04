@@ -1,37 +1,29 @@
-import { addOns, bundles, product, store } from "@/lib/product";
+import { priceCart, type Cart } from "@/lib/cart";
+import { store } from "@/lib/product";
 import { getStripe } from "@/lib/stripe";
 import type Stripe from "stripe";
 
-type Body = { bundleId?: string; designs?: string[]; addOnIds?: string[] };
-
 export async function POST(request: Request) {
-  const body = (await request.json().catch(() => ({}))) as Body;
-
-  const bundle = bundles.find((b) => b.id === body.bundleId);
-  if (!bundle) return Response.json({ error: "Pick a bundle." }, { status: 400 });
-
-  const designIds = new Set(product.designs.map((d) => d.id));
-  const designs = (body.designs ?? []).slice(0, bundle.qty);
-  if (designs.length !== bundle.qty || !designs.every((d) => designIds.has(d))) {
-    return Response.json({ error: "Pick a design for each mask." }, { status: 400 });
-  }
-
-  const chosenAddOns = addOns.filter((a) => body.addOnIds?.includes(a.id));
-  const designLabels = designs.map((id) => product.designs.find((d) => d.id === id)!.label);
+  const body = (await request.json().catch(() => null)) as Partial<Cart> | null;
+  const cart = priceCart({
+    lines: Array.isArray(body?.lines) ? body.lines : [],
+    addOnIds: Array.isArray(body?.addOnIds) ? body.addOnIds : [],
+  });
+  if (!cart.lines.length) return Response.json({ error: "Your cart is empty." }, { status: 400 });
 
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
-    {
+    ...cart.lines.map((l) => ({
       quantity: 1,
       price_data: {
         currency: store.currency,
-        unit_amount: bundle.price,
+        unit_amount: l.price,
         product_data: {
-          name: `${product.name} × ${bundle.qty}`,
-          description: `Designs: ${designLabels.join(", ")}`,
+          name: `${l.name} × ${l.qty}`,
+          description: `Designs: ${l.designLabels.join(", ")}`,
         },
       },
-    },
-    ...chosenAddOns.map((a) => ({
+    })),
+    ...cart.addOns.map((a) => ({
       quantity: 1,
       price_data: {
         currency: store.currency,
@@ -60,12 +52,11 @@ export async function POST(request: Request) {
       },
     ],
     phone_number_collection: { enabled: true },
-    // Everything your supplier needs to fulfil the order travels with the payment.
+    // Everything your supplier needs travels with the payment.
+    // Format: "handle:design,design;handle:design" (Stripe allows 500 chars per value).
     metadata: {
-      bundle: bundle.id,
-      qty: String(bundle.qty),
-      designs: designs.join(","),
-      addOns: chosenAddOns.map((a) => a.id).join(","),
+      items: cart.lines.map((l) => `${l.handle}:${l.designs.join(",")}`).join(";").slice(0, 500),
+      addOns: cart.addOns.map((a) => a.id).join(","),
     },
     success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/`,

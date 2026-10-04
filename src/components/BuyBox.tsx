@@ -1,49 +1,31 @@
 "use client";
 
-import { addOns, bundles, formatMoney, product } from "@/lib/product";
+import { useCart } from "@/components/cart/CartProvider";
+import { formatMoney, type Product } from "@/lib/product";
 import { useState } from "react";
 
-export default function BuyBox() {
-  const [bundleId, setBundleId] = useState("x2");
-  const [designs, setDesigns] = useState<string[]>(["toothless", "mustache", "smoker"]);
-  const [addOnIds, setAddOnIds] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+export default function BuyBox({ product }: { product: Product }) {
+  const cart = useCart();
+  const popular = product.bundles.find((b) => b.badge === "Most popular") ?? product.bundles[0];
+  const [bundleId, setBundleId] = useState(popular.id);
+  const [designs, setDesigns] = useState<string[]>(() =>
+    Array.from({ length: 10 }, (_, i) => product.designs[i % product.designs.length].id),
+  );
 
-  const bundle = bundles.find((b) => b.id === bundleId)!;
-  const extras = addOns.filter((a) => addOnIds.includes(a.id)).reduce((s, a) => s + a.price, 0);
-  const total = bundle.price + extras;
+  const bundle = product.bundles.find((b) => b.id === bundleId)!;
 
   function setDesign(index: number, id: string) {
     setDesigns((d) => d.map((v, i) => (i === index ? id : v)));
   }
 
-  function toggleAddOn(id: string) {
-    setAddOnIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
-  }
-
-  async function checkout() {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bundleId, designs: designs.slice(0, bundle.qty), addOnIds }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.url) throw new Error(data.error ?? "Checkout failed. Please try again.");
-      window.location.href = data.url;
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Checkout failed. Please try again.");
-      setLoading(false);
-    }
+  function addToCart() {
+    cart.add({ handle: product.handle, bundleId, designs: designs.slice(0, bundle.qty) });
   }
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3" role="radiogroup" aria-label="Choose a bundle">
-        {bundles.map((b) => {
+        {product.bundles.map((b) => {
           const selected = b.id === bundleId;
           return (
             <div
@@ -74,9 +56,7 @@ export default function BuyBox() {
                   </span>
                   <span>
                     <span className="block font-bold">{b.label} + Free shipping</span>
-                    <span className="block text-sm text-green-700">
-                      You save {formatMoney(b.compareAt - b.price)}
-                    </span>
+                    <span className="block text-sm text-green-700">You save {formatMoney(b.compareAt - b.price)}</span>
                   </span>
                 </span>
                 <span className="text-right">
@@ -110,40 +90,16 @@ export default function BuyBox() {
         })}
       </div>
 
-      <fieldset className="flex flex-col gap-2">
-        <legend className="mb-2 text-sm font-semibold text-neutral-700">Add to your order</legend>
-        {addOns.map((a) => (
-          <label
-            key={a.id}
-            className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-neutral-200 bg-white px-4 py-3"
-          >
-            <span className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                checked={addOnIds.includes(a.id)}
-                onChange={() => toggleAddOn(a.id)}
-                className="size-4 accent-black"
-              />
-              <span>
-                <span className="block text-sm font-semibold">{a.name}</span>
-                <span className="block text-xs text-neutral-500">{a.description}</span>
-              </span>
-            </span>
-            <span className="text-sm font-semibold">{formatMoney(a.price)}</span>
-          </label>
-        ))}
-      </fieldset>
-
       <button
         type="button"
-        onClick={checkout}
-        disabled={loading}
-        className="rounded-xl bg-black px-6 py-4 text-lg font-bold text-white transition hover:bg-neutral-800 disabled:opacity-60"
+        onClick={addToCart}
+        className="rounded-xl bg-black px-6 py-4 text-lg font-bold text-white transition hover:bg-neutral-800"
       >
-        {loading ? "Opening secure checkout…" : `Buy now · ${formatMoney(total)}`}
+        Add to cart · {formatMoney(bundle.price)}
       </button>
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      <p className="text-center text-xs text-neutral-500">Secure payment by Stripe · Free shipping on every order</p>
+      <p className="text-center text-xs text-neutral-500">
+        Free shipping · 30-day returns · Secure payment by Stripe
+      </p>
     </div>
   );
 }

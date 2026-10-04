@@ -1,4 +1,4 @@
-import { product } from "@/lib/product";
+import { getProduct } from "@/lib/product";
 import { getStripe } from "@/lib/stripe";
 import type Stripe from "stripe";
 
@@ -39,7 +39,23 @@ export async function POST(request: Request) {
 
 function toFulfilmentOrder(session: Stripe.Checkout.Session) {
   const shipping = session.collected_information?.shipping_details;
-  const designLabel = (id: string) => product.designs.find((d) => d.id === id)?.label ?? id;
+
+  // metadata.items looks like "handle:design,design;handle:design"
+  const items = (session.metadata?.items ?? "")
+    .split(";")
+    .filter(Boolean)
+    .flatMap((entry) => {
+      const [handle, designs = ""] = entry.split(":");
+      const product = getProduct(handle);
+      return designs
+        .split(",")
+        .filter(Boolean)
+        .map((id) => ({
+          product: product?.name ?? handle,
+          design: product?.designs.find((d) => d.id === id)?.label ?? id,
+          qty: 1,
+        }));
+    });
 
   return {
     orderId: session.id,
@@ -52,10 +68,7 @@ function toFulfilmentOrder(session: Stripe.Checkout.Session) {
       phone: session.customer_details?.phone,
     },
     shipTo: shipping?.address,
-    items: (session.metadata?.designs ?? "")
-      .split(",")
-      .filter(Boolean)
-      .map((id) => ({ product: product.name, design: designLabel(id), qty: 1 })),
+    items,
     addOns: (session.metadata?.addOns ?? "").split(",").filter(Boolean),
   };
 }

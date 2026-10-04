@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RideGrin — Funny Rider Face Mask",
+  title: "RideGrin — Funny Old Man Face Mask",
   description: "Funny face masks that fit under your motorcycle helmet. Free shipping.",
 };
 

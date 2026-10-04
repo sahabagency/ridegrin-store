@@ -12,28 +12,30 @@ export const store = {
 
 export const product = {
   id: "rider-face-mask",
-  name: "RideGrin Funny Rider Face Mask",
+  name: "RideGrin Funny Old Man Face Mask",
   tagline: "Turn every ride into a laugh",
-  // Put your supplier's product photos in /public/products and list them here.
+  // Supplier photos live in /public/products. The first one is the main image.
   images: [
-    "/products/placeholder-1.svg",
-    "/products/placeholder-2.svg",
-    "/products/placeholder-3.svg",
+    "/products/toothless-2.jpg",
+    "/products/mustache-1.jpg",
+    "/products/smoker-1.jpg",
+    "/products/toothless-1.jpg",
+    "/products/mustache-2.jpg",
   ],
   designs: [
-    { id: "grin", label: "Big Grin" },
-    { id: "monster", label: "Monster" },
-    { id: "skull", label: "Skull" },
+    { id: "toothless", label: "Toothless Grin" },
+    { id: "mustache", label: "Grandpa Mustache" },
+    { id: "smoker", label: "Grumpy Smoker" },
   ],
   features: [
     { icon: "😂", title: "Instant reactions", body: "Turn heads and get laughs everywhere you ride." },
     { icon: "🏍️", title: "Made for riders", body: "Fits comfortably under your motorcycle helmet." },
     { icon: "💨", title: "Light and breathable", body: "Stay comfortable without feeling bulky." },
-    { icon: "🎭", title: "Pick your personality", body: "Three designs. Mix and match in a bundle." },
+    { icon: "🎭", title: "Pick your personality", body: "Three realistic old-man faces. Mix and match in a bundle." },
   ],
   faq: [
     { q: "How long does shipping take?", a: "Orders ship within 1–3 business days. Delivery usually takes 7–15 business days, depending on your country." },
-    { q: "Will it fit under my helmet?", a: "Yes. It's thin, stretchy fabric designed to sit under full-face and open-face helmets." },
+    { q: "Will it fit under my helmet?", a: "Yes. It's thin, stretchy polyester that sits under full-face and open-face helmets, and works with goggles." },
     { q: "Can I return it?", a: "If it arrives damaged or isn't right, contact us within 30 days of delivery." },
   ],
 };

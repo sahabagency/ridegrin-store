@@ -5,7 +5,7 @@ import { useState } from "react";
 
 export default function BuyBox() {
   const [bundleId, setBundleId] = useState("x2");
-  const [designs, setDesigns] = useState<string[]>(["grin", "monster", "skull"]);
+  const [designs, setDesigns] = useState<string[]>(["toothless", "mustache", "smoker"]);
   const [addOnIds, setAddOnIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");

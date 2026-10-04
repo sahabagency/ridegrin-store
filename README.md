@@ -35,3 +35,11 @@ npm run dev                  # http://localhost:3000
 npm i -g vercel && vercel
 ```
 وأضف نفس متغيرات `.env.local` في إعدادات المشروع على Vercel.
+
+## المورّد (AliExpress)
+الصور في `public/products` مأخوذة من إعلانات هالموردين لنفس المنتج. افتح الروابط، قارن السعر والتقييم ومدة الشحن، واطلب عينة قبل البيع:
+- https://www.aliexpress.us/item/3256813108925921.html (الثلاث تصاميم)
+- https://www.aliexpress.us/item/3256813129593583.html
+- https://www.aliexpress.us/item/3256813127944382.html
+- https://www.aliexpress.us/item/3256813137552037.html
+- https://www.aliexpress.us/item/3256813129266143.html

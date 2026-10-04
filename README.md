@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RideGrin — متجر منتج واحد (دروب شوبينق + Stripe)
 
-## Getting Started
-
-First, run the development server:
-
+## التشغيل
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local   # حط مفاتيح Stripe
+npm install
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## تعديل المتجر
+كل شي في ملف واحد: `src/lib/product.ts`
+- اسم المتجر، المنتج، التصاميم، المميزات، الأسئلة
+- الباقات (1/2/3) والأسعار بالسنت (2999 = ‎$29.99)
+- الإضافات (الضمان، الشحن السريع، حماية الشحنة)
+- الدول اللي تشحن لها
+- الصور: حطها في `public/products/` وعدّل `images`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Stripe
+1. **المفتاح:** Dashboard ← Developers ← API keys ← انسخ `sk_test_...` إلى `STRIPE_SECRET_KEY`.
+2. **الويب هوك (عشان توصلك الطلبات):**
+   - محلياً: `stripe listen --forward-to localhost:3000/api/webhooks/stripe` وانسخ `whsec_...`
+   - بعد النشر: Developers ← Webhooks ← أضف `https://دومينك/api/webhooks/stripe` واختر حدث `checkout.session.completed`.
+3. جرّب بالبطاقة التجريبية `4242 4242 4242 4242`، وبعدها بدّل إلى `sk_live_...`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## دورة الطلب (دروب شوبينق)
+1. العميل يختار الباقة والتصاميم ويدفع في صفحة Stripe (يدخل عنوانه وجواله).
+2. Stripe يرسل للويب هوك ← المتجر يجهّز "طلب تنفيذ" فيه: الاسم، العنوان، الجوال، التصاميم، الإضافات.
+3. لو حطيت `ORDER_WEBHOOK_URL` (Zapier / Make) ينرسل الطلب هناك تلقائياً، مثلاً لسطر في Google Sheets أو رسالة.
+4. تطلب المنتج من المورّد (CJdropshipping / AliExpress) بعنوان العميل، وترسل له رقم التتبع.
 
-## Learn More
+> كل الطلبات موجودة كذلك في Stripe ← Payments، ومعها التفاصيل في Metadata.
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## النشر
+```bash
+npm i -g vercel && vercel
+```
+وأضف نفس متغيرات `.env.local` في إعدادات المشروع على Vercel.
